@@ -2,7 +2,7 @@
 ***ActionLayer***
 v0.1, @steveruizok
 
-An ActionLayer extends Layer, adding properties and functions designed to simplify  managing events.
+An ActionLayer extends Layer, adding properties and functions designed to simplify managing events in Framer.
 
 ***Installation***
 Download the `ActionLayer.coffee` file and place it in your project's modules folder.
