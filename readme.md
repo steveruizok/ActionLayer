@@ -304,8 +304,8 @@ In cases where you may wish to create actions apart form ActionLayers, or withou
 
 ```coffeescript
 
-{Action} 	  = require 'ActionLayers'
-{ActionLayer} = require 'ActionLayers'
+{Action} 	  = require 'ActionLayer'
+{ActionLayer} = require 'ActionLayer'
 
 tapped = new Action
 	name: 'tapped'
