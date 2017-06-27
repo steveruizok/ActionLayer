@@ -1,17 +1,17 @@
 
-***ActionLayer***
-v0.1, @steveruizok
+# ActionLayer
 
 An ActionLayer extends Layer, adding properties and functions designed to simplify managing events in Framer.
 
-***Installation***
+## Installation
+
 Download the `ActionLayer.coffee` file and place it in your project's modules folder.
 
 At the top of your project, include the line:
 
 `{ActionLayer} = require 'ActionLayer'`
 
-***Usage***
+## Usage
 
 An ActionLayer works with 'action objects'. These consist of four properties: a `trigger`, the Framer event that will cause the action to run; an `action`, the function that will execute when the trigger event occurs; a `name`, used to retrieve and modify individual actions; and `enable` , a boolean value that determines whether the action should be set or not. 
 
@@ -19,11 +19,11 @@ The trigger is a Framer Event property, formatted as a string, such as 'Tap', 'S
 
 An ActionLayer has an **initial action** enabled by default, as well as options for two **toggle' actions**, and functions to add and manage as many **additional actions** as you may require.
 
-**Initial Action**
+### ActionLayer.enable
 
-*ActionLayer.initial*
-*ActionLayer.trigger*
-*ActionLayer.action*
+An ActionLayer may have all events enabled or disabled by using the `enable` property. This property turns on or off the layer's `ignoreEvents` property.
+
+## Initial Action
 
 An ActionLayer has an `initial` action that may be set with the `trigger` and `action` properties. This initial action may be enabled or disabled using the `initial` property.
 
@@ -42,11 +42,7 @@ layerC = new ActionLayer
 
 By default, an ActionLayer has an initial action with a 'Tap' trigger and an action that causes it to quickly blink.
 
-**Toggle Actions**
-
-*ActionLayer.toggle*
-*ActionLayer.toggleOn*
-*ActionLayer.toggleOff*
+## Toggle Actions
 
 An ActionLayer may also be set to have two actions which toggle one another, set using the `toggleOn` and `toggleOff` properties. The property `toggle` must be set to true before these actions will be run.
 
@@ -75,7 +71,7 @@ layerE = new ActionLayer
 		action: -> print 'Swiped off.'
 ```
 
-*ActionLayer.isOn*
+### ActionLayer.isOn
 
 An ActionLayer's toggle status may be accessed with the `isOn` property.
 
@@ -88,18 +84,20 @@ layerE = new ActionLayer
 		action: -> print layerE.isOn # prints false
 ```
 
-*ActionLayer.toggled*
+### ActionLayer.toggled
 
 Finally, an ActionLayer's toggled status may be set programmaically, using the `toggled` property.
 
-	layerE = new ActionLayer
-		toggle: true
-		toggleOn:
-			action: -> print layerE.isOn # prints true
-		toggleOff:
-			action: -> print layerE.isOn # prints false
+```coffeescript
+layerE = new ActionLayer
+	toggle: true
+	toggleOn:
+		action: -> print layerE.isOn # prints true
+	toggleOff:
+		action: -> print layerE.isOn # prints false
 
-	layerE.toggled = true
+layerE.toggled = true
+```
 
 To prevent conflicts, a .05 second minimum delay exists between setting an ActionLayer's toggle. If rapid toggles are created programmaically, this must be overcome using a delay.
 
@@ -108,20 +106,15 @@ layerE.toggled = true
 Utils.delay .05, -> layerE.toggled = false
 ```
 
-*ActionLayer.enable*
-
-An ActionLayer may have all events enabled or disabled by using the `enable` property. This property turns on or off the layer's `ignoreEvents` property.
+# Additional Actions
 
 
-**Additional Actions**
-
-
-*ActionLayer.actions*
+### ActionLayer.actions
 
 In addition to its initial action and toggle actions, an ActionLayer may have any number of additional actions. These may be accessed using the `actions` property. By default, an ActionLayer has no additional actions, and this property will return an empty array.
 
 
-*ActionLayer.addAction*
+### ActionLayer.addAction
 
 Additional actions may be added to an ActionLayer using the `addAction` function. An ActionLayer may have as many actions as needed, including multiple actions that share the same trigger. When adding multiple acitons, it is recommended to give actions names so that they may be accessed and controlled later on.
 
@@ -134,7 +127,7 @@ layerF.addAction
 ```
 
 
-*ActionLayer.addActions*
+### ActionLayer.addActions(actions)
 
 Identical to `addActions`, except it accepts an array of action objects. Actions may be copied from one ActionLayer to the next using this function in combination with the `actions` property or the `getActions` function described below.
 
@@ -154,9 +147,6 @@ layerE = new ActionLayer
 layerE.addActions(layerF.actions)
 ```
 
-
-*ActionLayer.enable*
-
 Actions may be added but not immediately enabled, using the `enable` property. This property is `true` by default.
 
 ```coffeescript
@@ -169,7 +159,7 @@ layerF.addAction
 	enable: false
 ```
 
-*ActionLayer.getActions*
+### ActionLayer.getActions(options)
 
 Actions that have been added to the ActionLayer may be retrieved using the `getActions` function. Actions will be returned in the form of an array. 
 
@@ -205,12 +195,12 @@ tapped = layerF.addAction
 	action: -> print 'Tapped!'
 ```
 
-*ActionLayer.getAction*
+### ActionLayer.getAction(action)
 
 Identical to `getActions`, except it will return a single action as an object, rather than as an array. If multiple actions are found, only the first will be returned.
 
 
-*ActionLayer.disableActions*
+### ActionLayer.disableActions(actions)
 
 Actions may be disabled using the `disableActions` function. The result is the same as setting `enable` to false when adding an action using `addActions`. Actions may be passed to `disableActions` either as an array (such as the array produced by `getActions`) or as a single action object.
 
@@ -233,12 +223,12 @@ layerF.disableAction(tapped)
 layerF.disableAction(swiped)
 ```
 
-*ActionLayer.disableAction*
+### ActionLayer.disableAction(action)
 
 Identical to `disableActions`, except it accepts a single action object (such as that produced by `getAction`) rather than an array, (such as that produced by `getActions`).
 
 
-*ActionLayer.enableActions*
+### ActionLayer.enableActions(actions)
 
 Actions that have been disabled may be enabled again using the `enableActions` function. Actions may be passed to `enableActions` either as an array (such as the array produced by `getActions`) or as a single action object.
 
@@ -263,12 +253,12 @@ layerF.enableAction(tapped)
 layerF.enableAction(swiped)
 ```
 
-*ActionLayer.enableAction*
+### ActionLayer.enableAction(action)
 
 Identical to `enableActions`, except it accepts a single action object (such as that produced by `getAction`) rather than an array, (such as that produced by `getActions`).
 
 
-*ActionLayer.removeActions*
+### ActionLayer.removeActions(actions)
 
 Additional actions may be removed using the `removeAction` or `removeActions` function. These actions will not only be unset, but removed entirely; they will not be able to be reset using `enableActions`, but would have to be added again. Actions may be passed to `removeActions` either as an array (such as the array produced by `getActions`) or as a single action object.
 
@@ -293,12 +283,12 @@ layerF.removeAction(tapped)
 layerF.removeAction(swiped)
 ```
 
-*ActionLayer.removeAction*
+### ActionLayer.removeAction(action)
 
 Identical to `removeActions`, except it accepts a single action object (such as that produced by `getAction`) rather than an array, (such as that produced by `getActions`).
 
 
-***Action***
+# Action
 
 In cases where you may wish to create actions apart form ActionLayers, or without attaching immediately, you can use the class Action. As with actions added with `ActionLayer.addAction`, the default value of enabled will be `true`.
 
