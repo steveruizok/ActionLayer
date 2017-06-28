@@ -1,4 +1,4 @@
-# ActionLayer
+# ActionLayer / ActionTextLayer / Action / FocusComponent
 
 class Action
 	constructor: (options = {}) ->
@@ -7,172 +7,296 @@ class Action
 		@action = options.action ? throw 'Action requires an action.'
 		@enabled = options.enabled ? true
 
-
 class ActionLayer extends Layer
 	constructor: (options = {}) ->
 
-		###
-		An ActionLayer is designed to simplify adding and managing events. 
+		# set general options
+		@_actions = []
+		@_toggle = false
+		@_toggled = false
 
-		The class uses 'action objects', which are an object with a trigger, action, 
-		and (optionally) a name. The trigger is a Framer Event property, formatted as 
-		a string, such as 'Tap', 'SwipeEnd' or 'TouchStart'. The action is a function, 
-		such as -> print 'Hello'. The name may be any string and is optional.
+		# define initial action object
+		@_trigger = options.trigger ? 'Tap'
+		@_action = options.action ? -> @blinkUp.start()
+		@_initialAction = {name: 'initialAction', trigger: @_trigger, action: _.bind(@_action, @), enable: true}
 
-		**Initial Action**
+		# define toggleOn action object
+		@_onTrigger = options.toggleOn?.trigger ? @_trigger ? 'MouseOver'
+		@_onAction = 	options.toggleOn?.action ? -> @animate {opacity: .6, options: {time: .15}}
+		@_toggleOn = {name: 'toggleOn', trigger: @_onTrigger, enable: true, action: ->
+			@toggled = true
+			}
 
-		An ActionLayer has an 'initial action' that may be set with the 'trigger' and
-		'action' properties. This initial action may be enabled or disabled using the 
-		'initial' property. 
+		# define toggleOff action object
+		@_offTrigger = options.toggleOff?.trigger ? @_trigger ? 'MouseOut'
+		@_offAction =  options.toggleOff?.action ? -> @animate {opacity: 1, options: {time: .15}}
+		@_toggleOff = {name: 'toggleOff', trigger: @_offTrigger, enable: true, action: ->
+			@toggled = false
+			}
 
-			layerA = new ActionLayer
-				trigger: 'Tap'
-				action: -> print 'Hello World'
 
-			layerB = new ActionLayer
-			layerB.trigger = 'SwipeEnd'
-			layerB.action = -> print 'Swiped!'
+		# set options from options object
+		super _.defaults options
 
-			layerC = new ActionLayer
-				initial: false
+		@blinkUp = new Animation @, {brightness: 150, options:{time: .15}}
+		@blinkUp.on Events.AnimationEnd, -> @reset()
 
-		By default, an ActionLayer has an initial action with a 'Tap' trigger and an
-		action that causes it to quickly blink.
-
-		**Toggle Actions**
-
-		An ActionLayer may also be set to have two options which toggle one another,
-		called 'toggleOn' and 'toggleOff'. They may be set with the toggleOn and 
-		toggleOff properties. The property 'toggle' must be set to true before these
-		actions will be run.
-
-			layerD = new ActionLayer
-				toggle: true
-				toggleOn:
-					trigger: 'Tap'
-					action: -> print 'Toggled on.'
-				toggleOff:
-					trigger: 'Tap'
-					action: -> print 'Toggled off.'
 		
-		By default, an ActionLayer's toggleOn action will darken the layer, while its 
-		toggleOff will restore the layer to regular brightness; and both of these
-		default actions will use the 'Tap' trigger.
+		# set initial (if true, set initial action)
+		@initial = options.initial ? true
 
-		If trigger properties are not provided for the toggleOn or toggleOff options,
-		the ActionLayer's initial action trigger will be used instead.
+		# set toggle (if true, set toggle actions)
+		@_toggle = options.toggle ? false
 
-			layerE = new ActionLayer
-				trigger: 'SwipeEnd'
-				toggle: true
-				toggleOn:
-					action: -> print 'Swiped on.'
-				toggleOff:
-					action: -> print 'Swiped off.'
+		# set whether to enable events (if false, set ignore events)
+		@enable = options.enable ? true
+
+
+	# initial action ------------------
+
+	# set the initial action's trigger
+	@define "trigger",
+		get: -> return @_initialAction.trigger ? undefined
+		set: (trigger) ->
+			throw "ActionLayer: trigger must set with a Framer Event name formatted as a string, like 'Tap' or 'SwipeDown'." if typeof trigger isnt "string"
+			
+			# remove initial action
+			@removeAction(@_initialAction)
+
+			# change trigger
+			@_initialAction.trigger = trigger
+
+			if @_enabled is true then @_setAction(@_initialAction)
+
+	# define the initial action's action
+	@define "action",
+		get: -> return @_initialAction.action ? undefined
+		set: (action) ->
+			throw "ActionLayer: trigger must set with a function, like '-> print 'Hello world'." if typeof action isnt "function"
+			
+			# remove initial action
+			@removeAction(@_initialAction)
+
+			# change trigger
+			@_initialAction.action = action
+
+			if @_enabled is true then @_setAction(@_initialAction)
+
+	# enable
+	@define "initial",
+		get: -> return @_initial
+		set: (bool) -> 
+			return if bool is @_initial
+			@_inital = bool
+			switch bool
+				when true then @_setAction(@_initialAction)
+				when false then @_unsetAction(@_initialAction)
+
+	# enable
+	@define "enable",
+		get: -> return @_enabled
+		set: (bool) -> 
+			return if bool is @_enabled
+			@_enabled = bool
+			@ignoreEvents = !bool
+
+
+	# toggle --------------------------
+
+	# is on
+	@define "isOn",
+		get: -> return @_toggled
+		set: -> return 'ActionLayer.isOn is read only.'	
+
+	# toggleOff
+	@define "toggleOff",
+		get: -> return @_toggleOff
+		set: (actionObject) ->
+			@_unsetAction(@_toggleOff)
+			@_offTrigger = actionObject.trigger ? @_offTrigger
+			@_offAction  = actionObject.action  ? @_offAction
+			@_toggleOff = {name: 'toggleOff', trigger: @_offTrigger, action: ->
+				@toggled = false
+				}
+
+			if @_toggle is true then @_setAction(@_toggleOff)
+
+	# toggleOn
+	@define "toggleOn",
+		get: -> return @_toggleOn
+		set: (actionObject) ->
+			@_unsetAction(@_toggleOn)
+			@_onTrigger = actionObject.trigger ? @_onTrigger
+			@_onAction  = actionObject.action  ? @_onAction
+			@_toggleOn = {name: 'toggleOn', trigger: @_onTrigger, action: ->
+				@toggled = true
+				}
+
+			if @_toggle is true then @_setAction(@_toggleOn)
+
+	# toggle
+	@define "toggle",
+		get: -> return @_toggle
+		set: (bool) ->
+			return if bool is @_toggle
+			@_toggle = bool
+
+			switch @_toggle
+				when true
+					@_setAction(@_toggleOn)
+					@_setAction(@_toggleOff)
+				when false
+					@_unsetAction(@_toggleOn)
+					@_unsetAction(@_toggleOff)
+
+	# toggled
+	@define "toggled",
+		get: -> return @_toggled
+		set: (bool) ->
+			# cancel if toggling to current toggle state
+			switch bool
+				when true 
+					return if @_toggled is true 
+					Utils.delay .05, => 
+						@_toggled = true
+						_.bind(@_onAction, @)()
+						@emit("change:toggled", true, @)
+				when false
+					return if @_toggled is false 
+					Utils.delay .05, => 
+						@_toggled = false
+						_.bind(@_offAction, @)()
+						@emit("change:toggled", false, @)
+
+
+	# additional actions --------------
+
+	# get all additional actions
+	@define "actions",
+		get: -> return @_actions
+		set: -> throw 'ActionLayer.actions is read-only. Use .addActions() and .removeActions() to add or remove existing actions.'
+
+	# add an additional action
+	addAction: (options = {}) ->
+		trigger = options.trigger
+		action = options.action
+		name = options.name
+		enable = options.enable ? true
+
+		if !trigger? or typeof trigger isnt "string" then throw "ActionLayer.addAction requires a Framer Event name formatted as a string, such as 'Tap' or 'SwipeEnd'."
+		if !action? or typeof action isnt "function" then throw "ActionLayer.addAction requires a function, such as -> print @name."
+
+		# create an object using the provided arguments
+		_action = {trigger: trigger, name: name, action: action}
+
+		# stop if this exact action is already on the list of actions
+		return if _.includes(@_actions, _action)
+
+		# otherwise... 
+
+		@_actions.push(_action)		# add the action to the array of actions
 		
-		An ActionLayer's toggle status may be accessed with the 'isOn' property.
+		if enable?					# and, unless enable is set to false...
+			@_setAction(_action)	# enable the action
 
-			layerE = new ActionLayer
-				toggle: true
-				toggleOn:
-					action: -> print layerE.isOn # prints true
-				toggleOff:
-					action: -> print layerE.isOn # prints false
+		return _action
 
-		Finally, an ActionLayer's toggled status may be set programmaically, using the
-		`toggled` function.
+	# add multiple actions
+	addActions: (actions) ->
+		actions.forEach (action) => @addAction(action)
+		return actions
 
-			layerE = new ActionLayer
-				toggle: true
-				toggleOn:
-					action: -> print layerE.isOn # prints true
-				toggleOff:
-					action: -> print layerE.isOn # prints false
+	# get actions that have been added
+	getActions: (options = {}) ->
+		_actions = @_getActions(options)
+		return _actions
 
-			layerE.toggled = true
+	# get an individual action
+	getAction: (options = {}) ->
+		_actions = @_getActions(options)
+		return _actions[0]
 
-		To prevent conflicts, a .05 second minimum delay exists between setting an
-		ActionLayer's toggle. If rapid toggles are created programmaically, this
-		must be overcome using a delay.
+	# remove actions that have been added
+	removeActions: (actions) ->
+		# ensure that actions is an array, even if only an object is provided 
+		actions = _.castArray(actions)
 
-			layerE.toggled = true
-			Utils.delay .05, -> layerE.toggled = false
+		# don't continue if there are no actions with that trigger
+		return if actions.length is 0
 
-		**Additional Actions**
+		# for each of these actions, remove the event listener and pull from _actions
+		actions.forEach (action) => @removeAction(action)
 
-		Additional actions may be added to an ActionLayer using the addAction function.
+	# remove an individual action
+	removeAction: (action) ->
+		@_unsetAction(action)
+		_.pull(@_action, actions)
 
-			layerF = new ActionLayer
+	# enable actions that have been added
+	enableActions: (actions) ->
+		# ensure that actions is an array, even if only an object is provided 
+		actions = _.castArray(actions)
 
-			layerF.addAction
-				trigger: 'SwipeEnd'
-				action: -> print 'Swiped!'
+		# don't continue if there are no actions with that trigger
+		return if actions.length is 0
 
-		Actions may be added but not immediately enabled, using the `enable` property.
+		# for each of these actions, add the event listener
+		actions.forEach (action) => @enableAction(action)
 
-			layerF = new ActionLayer
+	# enable an individual action
+	enableAction: (action) ->
+		@_setAction(action)
 
-			layerF.addAction
-				trigger: 'SwipeEnd'
-				action: -> print 'Swiped!'
-				enable: false
+	# disable actions that have been added / enabled
+	disableActions: (actions) ->
+		# ensure that actions is an array, even if only an object is provided 
+		actions = _.castArray(actions)
 
-		Actions may also be disabled using the `disableAction` function.
+		# don't continue if there are no actions with that trigger
+		return if actions.length is 0
 
-			layerF = new ActionLayer
+		# for each of these actions, remove the event listener
+		actions.forEach (action) => @disableAction(action)
 
-			layerF.addAction
-				name: 'swiped'
-				trigger: 'SwipeEnd'
-				action: -> print 'Swiped!'
+	# disable an individal action
+	disableAction: (action) ->
+		@_unsetAction(action)
 
-			layerF.disableAction
-				name: 'swiped'
 
-		And they may be enabled using the `enableAction` function.
+	# private functions ---------------
 
-			layerF = new ActionLayer
+	# returns all actions given name or trigger
+	_getActions: (actionObject) ->
+		trigger = actionObject.trigger
+		name = actionObject.name
 
-			layerF.addAction
-				name: 'swiped'
-				enable: false
-				trigger: 'SwipeEnd'
-				action: -> print 'Swiped!'
+		if trigger? and typeof trigger isnt "string" then throw "ActionLayer.addAction requires a trigger a string, such as 'Tap' or 'SwipeEnd'."
+		if name? and typeof name isnt "string" then throw "ActionLayer.addAction requires a name as a string, such as 'greet' or 'blink'."
 
-			layerF.enableAction
-				name: 'swiped'
+		# get all actions to remove
+		_actions = 
+			# if action provided, get the stored action that has both the trigger and action
+			if trigger? and name? then _.filter(@_actions, {'trigger': trigger, 'name': name})
+			else if name? then _.filter(@_actions, {'name': name})
+			else if trigger? then _.filter(@_actions, {'trigger': trigger})
+			else throw "ActionLayer.removeAction requires either the action's trigger or its name."
 
-		Additional actions may be removed using the removeAction function. 
+		return _actions
 
-			layerG = new ActionLayer
+	# enables an action (adds the listener)
+	_setAction: (actionObject) ->
+		trigger = actionObject.trigger
+		action = actionObject.action
+		@on Events[trigger], action
 
-			layerG.addAction
-				trigger: 'SwipeEnd'
-				action: -> print 'Swiped!'
+	# disables an action (removes the listener)
+	_unsetAction: (actionObject) ->
+		trigger = actionObject.trigger
+		action = actionObject.action
+		@off Events[trigger], action
 
-			layerG.addAction
-				trigger: 'SwipeEnd'
-				name: 'reallySwiped'
-				action: -> print 'Really, it was swiped!'
-
-			layerG.removeAction
-				name: 'reallySwiped'
-
-		In the `enableAction`, `disableAction` and `removeAction` functions, the
-		actions affected depend on which properties are provided in the function's 
-		arguments.
-
-		If only the `trigger` is provided, all actions with that trigger will be 
-		removed. If a name is provided, all actions with that name will be removed. 
-		If both a name and a trigger are provided, all actions with both that name 
-		and that trigger will be removed.
-
-		**Enable**
-
-		An ActionLayer may have all events enabled or disabled by using the 'enable'
-		property. This property turns on or off the layer's ignoreEvents property.
-
-		###
+class ActionTextLayer extends TextLayer
+	constructor: (options = {}) ->
 
 		# set general options
 		@_actions = []
@@ -337,7 +461,7 @@ class ActionLayer extends Layer
 
 	# get all additional actions
 	@define "actions",
-		get: -> return _actions
+		get: -> return @_actions
 		set: -> throw 'ActionLayer.actions is read-only. Use .addActions() and .removeActions() to add or remove existing actions.'
 
 	# add an additional action
@@ -394,7 +518,7 @@ class ActionLayer extends Layer
 	# remove an individual action
 	removeAction: (action) ->
 		@_unsetAction(action)
-		_.pull(action, _actions)
+		_.pull(@_actions, action)
 
 	# enable actions that have been added
 	enableActions: (actions) ->
@@ -459,9 +583,12 @@ class ActionLayer extends Layer
 		action = actionObject.action
 		@off Events[trigger], action
 
-exports.ActionLayer = ActionLayer
-exports.Action = Action
 
+
+
+exports.Action = Action
+exports.ActionLayer = ActionLayer
+exports.ActionTextLayer= ActionTextLayer
 
 
 

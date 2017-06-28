@@ -13,6 +13,13 @@ At the top of your project, include the line:
 
 ## Usage
 
+Property | Type | Default | Description
+-------- | ---- | ------- | -----------
+`trigger` | string | `'Tap'` | Defines which Framer Event will trigger the initial action
+`action` | function | `-> @blinkUp.start()` | Defines the initial action's function
+`initial` | boolean | `true` | Sets whether to enable or disable the initial action
+
+
 An ActionLayer works with 'action objects'. These consist of four properties: a `trigger`, the Framer event that will cause the action to run; an `action`, the function that will execute when the trigger event occurs; a `name`, used to retrieve and modify individual actions; and `enable` , a boolean value that determines whether the action should be set or not. 
 
 The trigger is a Framer Event property, formatted as a string, such as 'Tap', 'SwipeEnd' or 'TouchStart'. The action is a function, such as `-> print 'Hello'`. The name may be any string and is optional. The `enable` property is a boolean, and is `true` by default.
@@ -46,6 +53,15 @@ By default, an ActionLayer has an initial action with a 'Tap' trigger and an act
 
 An ActionLayer may also be set to have two actions which toggle one another, set using the `toggleOn` and `toggleOff` properties. The property `toggle` must be set to true before these actions will be run.
 
+Property | Type | Default | Description
+-------- | ---- | ------- | -----------
+`toggle` | boolean | `false` | Sets whether to enable or disable toggle actions
+`toggleOn` | object | ... | Defines action object for first (on) toggle action 
+`toggleOff` | object | ... | Defines action object for second (off) toggle action 
+`toggled` | boolean | `false` | Sets whether the ActionLayer should be toggled on or off
+`isOn` | boolean | `false` | Returns whether the ActionLayer is toggled on or off (read-only)
+
+
 ```coffeescript
 layerD = new ActionLayer
 	toggle: true
@@ -57,9 +73,7 @@ layerD = new ActionLayer
 		action: -> print 'Toggled off.'
 ```
 
-By default, an ActionLayer's `toggleOn` action will darken the layer, while its `toggleOff` action will restore the layer to its regular brightness. Both of these default actions will use the 'Tap' trigger.
-
-If trigger properties are not provided for the `toggleOn` or `toggleOff` options, the ActionLayer's initial action trigger will be used instead. This will be 'Tap' unless set to another trigger using the `trigger` property.
+By default, an ActionLayer's `toggleOn` action will darken the layer, while its `toggleOff` action will restore the layer to its regular brightness. If trigger properties are not provided for the `toggleOn` or `toggleOff` options, the ActionLayer's initial action trigger will be used instead. This will be 'Tap' unless set to another trigger using the `trigger` property.
 
 ```coffeescript
 layerE = new ActionLayer
@@ -91,12 +105,12 @@ Finally, an ActionLayer's toggled status may be set programmaically, using the `
 ```coffeescript
 layerE = new ActionLayer
 	toggle: true
+	toggled: true
 	toggleOn:
-		action: -> print layerE.isOn # prints true
+		action: -> @backgroundColor = 'red'
 	toggleOff:
-		action: -> print layerE.isOn # prints false
+		action: -> @backgroundColor = 'grey'
 
-layerE.toggled = true
 ```
 
 To prevent conflicts, a .05 second minimum delay exists between setting an ActionLayer's toggle. If rapid toggles are created programmaically, this must be overcome using a delay.
@@ -106,13 +120,50 @@ layerE.toggled = true
 Utils.delay .05, -> layerE.toggled = false
 ```
 
+### ActionLayer.on "change:toggled"
+
+When an ActionLayer fires a toggle action, it will emit an event and the value of its toggled state. This may be captured with an event listener using ActionLayer.on "change:toggled".
+
+```coffeescript
+result = new TextLayer
+	text: ''
+
+layerE = new ActionLayer
+	toggle: true
+	toggleOn:
+		action: -> @backgroundColor = 'red'
+	toggleOff:
+		action: -> @backgroundColor = 'grey'
+
+layerE.on "change:toggled", (toggled, layer) ->
+	result.text = "#{layer}'s toggled state is #{toggled}."
+
+layerE.toggled = true
+```
+
 # Additional Actions
 
+In addition to its initial action and toggle actions, an ActionLayer may have any number of additional actions. 
+
+Property | Type | Default | Description
+-------- | ---- | ------- | -----------
+`actions` | array | `[]` | Returns an array of this ActionLayer's additional actions 
+
+Function | Arguments | Description
+-------- | ---- | ------- | -----------
+`addAction` | action object | Add a new action object to the ActionLayer
+`getAction` | {name: '', trigger: ''} | Query and return the first action that matches the provided name and/or trigger
+`getActions` | {name: '', trigger: ''} | Query and return all actions matching the provided name and/or trigger
+`disableAction` | action object | Disable an action on this ActionLayer
+`disableActions` | array | Disable all actions in array
+`enableAction` | action object | Enable an action that has been disabled
+`enableActions` | array | Disable all actions in array
+`removeAction` | action object | Remove and disable an action
+`removeActions` | array | Remove and disable all actions in array
 
 ### ActionLayer.actions
 
-In addition to its initial action and toggle actions, an ActionLayer may have any number of additional actions. These may be accessed using the `actions` property. By default, an ActionLayer has no additional actions, and this property will return an empty array.
-
+Actions added to an ActionLayer may be retrieved using the `actions` property. This property is read-only. By default, an ActionLayer has no additional actions, and this property will return an empty array.
 
 ### ActionLayer.addAction
 
