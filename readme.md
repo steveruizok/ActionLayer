@@ -150,7 +150,7 @@ Property | Type | Default | Description
 `actions` | array | `[]` | Returns an array of this ActionLayer's additional actions 
 
 Function | Arguments | Description
--------- | ---- | ------- | -----------
+-------- | --------- | -----------
 `addAction` | action object | Add a new action object to the ActionLayer
 `getAction` | {name: '', trigger: ''} | Query and return the first action that matches the provided name and/or trigger
 `getActions` | {name: '', trigger: ''} | Query and return all actions matching the provided name and/or trigger
