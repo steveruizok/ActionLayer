@@ -230,7 +230,7 @@ class ActionLayer extends Layer
 	# remove an individual action
 	removeAction: (action) ->
 		@_unsetAction(action)
-		_.pull(@_action, actions)
+		_.pull(@_actions, action)
 
 	# enable actions that have been added
 	enableActions: (actions) ->
