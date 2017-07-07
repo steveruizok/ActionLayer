@@ -5,7 +5,7 @@ class Action
 		@name = options.name ? "action#{_.random(1000)}"
 		@trigger = options.trigger ? throw 'Action requires a trigger.'
 		@action = options.action ? throw 'Action requires an action.'
-		@enabled = options.enabled ? true
+		@enable = options.enable ? true
 
 class ActionLayer extends Layer
 	constructor: (options = {}) ->
@@ -14,6 +14,7 @@ class ActionLayer extends Layer
 		@_actions = []
 		@_toggle = false
 		@_toggled = false
+		@_enabled = true
 
 		# define initial action object
 		@_trigger = options.trigger ? 'Tap'
@@ -302,6 +303,7 @@ class ActionTextLayer extends TextLayer
 		@_actions = []
 		@_toggle = false
 		@_toggled = false
+		@_enabled = true
 
 		# define initial action object
 		@_trigger = options.trigger ? 'Tap'

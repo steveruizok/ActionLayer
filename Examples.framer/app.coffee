@@ -27,6 +27,8 @@ for i in [0...15]
 		y: 20 + (120 * _.floor(i / 3))
 		image: Utils.randomImage()
 		borderRadius: 8, borderWidth: 1
+		
+		# aciton layer stuff
 		toggle: true
 		toggleOn:
 			trigger: 'Tap'
