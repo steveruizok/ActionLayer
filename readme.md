@@ -34,7 +34,7 @@ An ActionLayer may have all events enabled or disabled by using the `enable` pro
 
 An ActionLayer has an `initial` action that may be set with the `trigger` and `action` properties. This initial action may be enabled or disabled using the `initial` property.
 
-```coffeescript
+```CoffeeScript
 layerA = new ActionLayer
 	trigger: 'Tap'
 	action: -> print 'Hello World'
@@ -62,7 +62,7 @@ Property | Type | Default | Description
 `isOn` | boolean | `false` | Returns whether the ActionLayer is toggled on or off (read-only)
 
 
-```coffeescript
+```CoffeeScript
 layerD = new ActionLayer
 	toggle: true
 	toggleOn:
@@ -75,7 +75,7 @@ layerD = new ActionLayer
 
 By default, an ActionLayer's `toggleOn` action will darken the layer, while its `toggleOff` action will restore the layer to its regular brightness. If trigger properties are not provided for the `toggleOn` or `toggleOff` options, the ActionLayer's initial action trigger will be used instead. This will be 'Tap' unless set to another trigger using the `trigger` property.
 
-```coffeescript
+```CoffeeScript
 layerE = new ActionLayer
 	trigger: 'SwipeEnd'
 	toggle: true
@@ -89,7 +89,7 @@ layerE = new ActionLayer
 
 An ActionLayer's toggle status may be accessed with the `isOn` property.
 
-```coffeescript
+```CoffeeScript
 layerE = new ActionLayer
 	toggle: true
 	toggleOn:
@@ -102,7 +102,7 @@ layerE = new ActionLayer
 
 Finally, an ActionLayer's toggled status may be set programmaically, using the `toggled` property.
 
-```coffeescript
+```CoffeeScript
 layerE = new ActionLayer
 	toggle: true
 	toggled: true
@@ -115,7 +115,7 @@ layerE = new ActionLayer
 
 To prevent conflicts, a .05 second minimum delay exists between setting an ActionLayer's toggle. If rapid toggles are created programmaically, this must be overcome using a delay.
 
-```coffeescript
+```CoffeeScript
 layerE.toggled = true
 Utils.delay .05, -> layerE.toggled = false
 ```
@@ -124,7 +124,7 @@ Utils.delay .05, -> layerE.toggled = false
 
 When an ActionLayer fires a toggle action, it will emit an event and the value of its toggled state. This may be captured with an event listener using ActionLayer.on "change:toggled".
 
-```coffeescript
+```CoffeeScript
 result = new TextLayer
 	text: ''
 
@@ -169,7 +169,7 @@ Actions added to an ActionLayer may be retrieved using the `actions` property. T
 
 Additional actions may be added to an ActionLayer using the `addAction` function. An ActionLayer may have as many actions as needed, including multiple actions that share the same trigger. When adding multiple acitons, it is recommended to give actions names so that they may be accessed and controlled later on.
 
-```coffeescript
+```CoffeeScript
 layerF = new ActionLayer
 
 layerF.addAction
@@ -182,7 +182,7 @@ layerF.addAction
 
 Identical to `addActions`, except it accepts an array of action objects. Actions may be copied from one ActionLayer to the next using this function in combination with the `actions` property or the `getActions` function described below.
 
-```coffeescript
+```CoffeeScript
 layerF = new ActionLayer
 
 layerF.addAction
@@ -200,7 +200,7 @@ layerE.addActions(layerF.actions)
 
 Actions may be added but not immediately enabled, using the `enable` property. This property is `true` by default.
 
-```coffeescript
+```CoffeeScript
 layerF = new ActionLayer
 
 layerF.addAction
@@ -216,7 +216,7 @@ Actions that have been added to the ActionLayer may be retrieved using the `getA
 
 The actions that this function returns will depend on which properties are provided in the function's arguments. If only the `trigger` is provided, all actions with that trigger will be returned. If a `name` is provided, all actions with that name will be returned. If both a name and a trigger are provided, all actions with both that name and that trigger will be returned.
 
-```coffeescript
+```CoffeeScript
 layerF = new ActionLayer
 
 layerF.addAction
@@ -238,7 +238,7 @@ allSwiped = layerF.getActions
 
 An alternative to `getActions` is to define an action as it is added.
 
-```coffeescript
+```CoffeeScript
 layerF = new ActionLayer
 
 tapped = layerF.addAction
@@ -255,7 +255,7 @@ Identical to `getActions`, except it will return a single action as an object, r
 
 Actions may be disabled using the `disableActions` function. The result is the same as setting `enable` to false when adding an action using `addActions`. Actions may be passed to `disableActions` either as an array (such as the array produced by `getActions`) or as a single action object.
 
-```coffeescript
+```CoffeeScript
 layerF = new ActionLayer
 
 layerF.addAction
@@ -283,7 +283,7 @@ Identical to `disableActions`, except it accepts a single action object (such as
 
 Actions that have been disabled may be enabled again using the `enableActions` function. Actions may be passed to `enableActions` either as an array (such as the array produced by `getActions`) or as a single action object.
 
-```coffeescript
+```CoffeeScript
 layerF = new ActionLayer
 
 layerF.addAction
@@ -313,7 +313,7 @@ Identical to `enableActions`, except it accepts a single action object (such as 
 
 Additional actions may be removed using the `removeAction` or `removeActions` function. These actions will not only be unset, but removed entirely; they will not be able to be reset using `enableActions`, but would have to be added again. Actions may be passed to `removeActions` either as an array (such as the array produced by `getActions`) or as a single action object.
 
-```coffeescript
+```CoffeeScript
 layerF = new ActionLayer
 
 layerF.addAction
@@ -343,7 +343,7 @@ Identical to `removeActions`, except it accepts a single action object (such as 
 
 In cases where you may wish to create actions apart form ActionLayers, or without attaching immediately, you can use the class Action. As with actions added with `ActionLayer.addAction`, the default value of enabled will be `true`.
 
-```coffeescript
+```CoffeeScript
 
 {Action} 	  = require 'ActionLayer'
 {ActionLayer} = require 'ActionLayer'
