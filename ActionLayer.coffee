@@ -5,21 +5,30 @@ class Action
 		@name = options.name ? "action#{_.random(1000)}"
 		@trigger = options.trigger ? throw 'Action requires a trigger.'
 		@action = options.action ? throw 'Action requires an action.'
-		@enable = options.enable ? true
+		@enabled = options.enabled ? true
+
+class ToggleAction
+	constructor: (options = {}) ->
+		@name = options.name ? "action#{_.random(1000)}"
+		@trigger = options.trigger ? throw 'Tap'
+		@enabled = options.enabled ? true
+		@toggleOn = options.toggleOn ? {trigger: @trigger,  action: -> @animate {brightness: 70,  options:{time:.25}}} 
+		@toggleOff = options.toggleOn ? {trigger: @trigger, action: -> @animate {brightness: 100, options:{time:.25}}} 
 
 class ActionLayer extends Layer
 	constructor: (options = {}) ->
 
 		# set general options
 		@_actions = []
+		@_initial = true
 		@_toggle = false
 		@_toggled = false
-		@_enabled = true
 
 		# define initial action object
 		@_trigger = options.trigger ? 'Tap'
 		@_action = options.action ? -> @blinkUp.start()
 		@_initialAction = {name: 'initialAction', trigger: @_trigger, action: _.bind(@_action, @), enable: true}
+		
 
 		# define toggleOn action object
 		@_onTrigger = options.toggleOn?.trigger ? @_trigger ? 'MouseOver'
@@ -39,11 +48,11 @@ class ActionLayer extends Layer
 		# set options from options object
 		super _.defaults options
 
+
 		@blinkUp = new Animation @, {brightness: 150, options:{time: .15}}
 		@blinkUp.on Events.AnimationEnd, -> @reset()
 
-		
-		# set initial (if true, set initial action)
+		@_setAction(@_initialAction)
 		@initial = options.initial ? true
 
 		# set toggle (if true, set toggle actions)
@@ -52,6 +61,7 @@ class ActionLayer extends Layer
 		# set whether to enable events (if false, set ignore events)
 		@enable = options.enable ? true
 
+		
 
 	# initial action ------------------
 
@@ -62,7 +72,7 @@ class ActionLayer extends Layer
 			throw "ActionLayer: trigger must set with a Framer Event name formatted as a string, like 'Tap' or 'SwipeDown'." if typeof trigger isnt "string"
 			
 			# remove initial action
-			@removeAction(@_initialAction)
+			if @_initialAction? then @removeAction(@_initialAction)
 
 			# change trigger
 			@_initialAction.trigger = trigger
@@ -76,7 +86,7 @@ class ActionLayer extends Layer
 			throw "ActionLayer: trigger must set with a function, like '-> print 'Hello world'." if typeof action isnt "function"
 			
 			# remove initial action
-			@removeAction(@_initialAction)
+			if @_initialAction? then @removeAction(@_initialAction)
 
 			# change trigger
 			@_initialAction.action = action
@@ -303,7 +313,6 @@ class ActionTextLayer extends TextLayer
 		@_actions = []
 		@_toggle = false
 		@_toggled = false
-		@_enabled = true
 
 		# define initial action object
 		@_trigger = options.trigger ? 'Tap'
@@ -591,7 +600,6 @@ class ActionTextLayer extends TextLayer
 exports.Action = Action
 exports.ActionLayer = ActionLayer
 exports.ActionTextLayer= ActionTextLayer
-
 
 
 
