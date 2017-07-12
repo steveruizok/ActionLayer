@@ -1,4 +1,7 @@
 # ActionLayer / ActionTextLayer / Action / FocusComponent
+# @steveruizok, 2017
+
+# See documentation at: https://github.com/steveruizok/ActionLayer
 
 class Action
 	constructor: (options = {}) ->
