@@ -192,7 +192,7 @@ class ActionLayer extends Layer
 
 	# add an additional action
 	addAction: (options = {}) ->
-		trigger = options.trigger
+		trigger = options.trigger ? 'Tap'
 		action = options.action
 		name = options.name
 		enable = options.enable ? true
@@ -314,16 +314,15 @@ class ActionTextLayer extends TextLayer
 
 		# set general options
 		@_actions = []
+		@_initial = true
 		@_toggle = false
 		@_toggled = false
 
 		# define initial action object
 		@_trigger = options.trigger ? 'Tap'
-		@_action = options.action ? ->
-			@blinkUp = new Animation @, {brightness: 150, options:{time: .15}}
-			@blinkUp.on Events.AnimationEnd, -> @reset()
-			@blinkUp.start()
+		@_action = options.action ? -> @blinkUp.start()
 		@_initialAction = {name: 'initialAction', trigger: @_trigger, action: _.bind(@_action, @), enable: true}
+		
 
 		# define toggleOn action object
 		@_onTrigger = options.toggleOn?.trigger ? @_trigger ? 'MouseOver'
@@ -343,8 +342,11 @@ class ActionTextLayer extends TextLayer
 		# set options from options object
 		super _.defaults options
 
-		
-		# set initial (if true, set initial action)
+
+		@blinkUp = new Animation @, {brightness: 150, options:{time: .15}}
+		@blinkUp.on Events.AnimationEnd, -> @reset()
+
+		@_setAction(@_initialAction)
 		@initial = options.initial ? true
 
 		# set toggle (if true, set toggle actions)
@@ -353,6 +355,7 @@ class ActionTextLayer extends TextLayer
 		# set whether to enable events (if false, set ignore events)
 		@enable = options.enable ? true
 
+		
 
 	# initial action ------------------
 
@@ -363,7 +366,7 @@ class ActionTextLayer extends TextLayer
 			throw "ActionLayer: trigger must set with a Framer Event name formatted as a string, like 'Tap' or 'SwipeDown'." if typeof trigger isnt "string"
 			
 			# remove initial action
-			@removeAction(@_initialAction)
+			if @_initialAction? then @removeAction(@_initialAction)
 
 			# change trigger
 			@_initialAction.trigger = trigger
@@ -377,7 +380,7 @@ class ActionTextLayer extends TextLayer
 			throw "ActionLayer: trigger must set with a function, like '-> print 'Hello world'." if typeof action isnt "function"
 			
 			# remove initial action
-			@removeAction(@_initialAction)
+			if @_initialAction? then @removeAction(@_initialAction)
 
 			# change trigger
 			@_initialAction.action = action
@@ -462,13 +465,13 @@ class ActionTextLayer extends TextLayer
 					Utils.delay .05, => 
 						@_toggled = true
 						_.bind(@_onAction, @)()
-						@emit("change:toggled", true)
+						@emit("change:toggled", true, @)
 				when false
 					return if @_toggled is false 
 					Utils.delay .05, => 
 						@_toggled = false
 						_.bind(@_offAction, @)()
-						@emit("change:toggled", false)
+						@emit("change:toggled", false, @)
 
 
 	# additional actions --------------
@@ -480,7 +483,7 @@ class ActionTextLayer extends TextLayer
 
 	# add an additional action
 	addAction: (options = {}) ->
-		trigger = options.trigger
+		trigger = options.trigger ? 'Tap'
 		action = options.action
 		name = options.name
 		enable = options.enable ? true
@@ -596,7 +599,6 @@ class ActionTextLayer extends TextLayer
 		trigger = actionObject.trigger
 		action = actionObject.action
 		@off Events[trigger], action
-
 
 
 
